@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Inject,
+  Logger,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,16 +15,21 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
 import { PaginationDto } from 'src/common';
 import { PRODUCT_SERVICE } from 'src/config';
+import { CreateProductDto } from './dto/create-product.dto';
 
 @Controller('products')
 export class ProductsController {
+  private readonly logger = new Logger(ProductsController.name)
   constructor(
     @Inject(PRODUCT_SERVICE) private readonly productsClient: ClientProxy,
   ) {}
   @Post()
-  createProduct() {
-    return 'Create Product';
-  }
+  createProduct(@Body()createProduct : CreateProductDto) {
+    this.logger.log(createProduct)
+    return this.productsClient.send(
+      { cmd: 'create_product' },
+      createProduct,
+    );  }
   @Get()
   findAllProducts(@Query() paginationDto: PaginationDto) {
     console.log(paginationDto);
