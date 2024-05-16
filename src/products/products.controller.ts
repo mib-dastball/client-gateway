@@ -16,20 +16,19 @@ import { catchError } from 'rxjs';
 import { PaginationDto } from 'src/common';
 import { PRODUCT_SERVICE } from 'src/config';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductsController {
-  private readonly logger = new Logger(ProductsController.name)
+  private readonly logger = new Logger(ProductsController.name);
   constructor(
     @Inject(PRODUCT_SERVICE) private readonly productsClient: ClientProxy,
   ) {}
   @Post()
-  createProduct(@Body()createProduct : CreateProductDto) {
-    this.logger.log(createProduct)
-    return this.productsClient.send(
-      { cmd: 'create_product' },
-      createProduct,
-    );  }
+  createProduct(@Body() createProduct: CreateProductDto) {
+    this.logger.log(createProduct);
+    return this.productsClient.send({ cmd: 'create_product' }, createProduct);
+  }
   @Get()
   findAllProducts(@Query() paginationDto: PaginationDto) {
     console.log(paginationDto);
@@ -42,8 +41,7 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productsClient.send({ cmd: 'find_one_product' }, { id })
-    .pipe(
+    return this.productsClient.send({ cmd: 'find_one_product' }, { id }).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),
@@ -63,32 +61,33 @@ export class ProductsController {
 
   @Delete(':id')
   deleteProduct(@Param('id', ParseIntPipe) id: number) {
-    return id;
-    //   return this.client.send({ cmd: 'delete_product' }, { id }).pipe(
-    //     catchError((err) => {
-    //       throw new RpcException(err);
-    //     }),
-    //   );
+    return this.productsClient.send({ cmd: 'delete_product' }, { id }).pipe(
+      catchError((err) => {
+        throw new RpcException(err);
+      }),
+    );
   }
 
   @Patch(':id')
   patchProduct(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateProductDto,
+    @Body() updateProductDto: UpdateProductDto,
   ) {
-    return id;
-    // return this.client
-    //   .send(
-    //     { cmd: 'update_product' },
-    //     {
-    //       id,
-    //       ...updateProductDto,
-    //     },
-    //   )
-    //   .pipe(
-    //     catchError((err) => {
-    //       throw new RpcException(err);
-    //     }),
-    //   );
+    console.log(id);
+    console.log(updateProductDto);
+
+    return this.productsClient
+      .send(
+        { cmd: 'update_product' },
+        {
+          id,
+          ...updateProductDto,
+        },
+      )
+      .pipe(
+        catchError((err) => {
+          throw new RpcException(err);
+        }),
+      );
   }
 }
