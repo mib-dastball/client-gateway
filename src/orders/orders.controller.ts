@@ -9,10 +9,10 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { ORDER_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { catchError } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
+import { CreateOrderDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -24,6 +24,7 @@ export class OrdersController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
+    this.logger.log('createOrderDto');
     this.logger.log(createOrderDto);
 
     return this.ordersClient.send('createOrder', createOrderDto);
@@ -35,11 +36,14 @@ export class OrdersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersClient.send('findOneOrder', { id }).pipe(
-      catchError((err) => {
-        throw new RpcException(err);
-      }),
-    );
+  async findOne(@Param('id') id: string) {
+    try {
+      const order = await firstValueFrom(
+        this.ordersClient.send('findOneOrder', { id }),
+      );
+      return order;
+    } catch (err) {
+      throw new RpcException(err);
+    }
   }
 }
