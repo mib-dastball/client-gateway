@@ -9,7 +9,7 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
-import { ORDER_SERVICE } from 'src/config';
+import { NATS_SERVICE, ORDER_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CreateOrderDto } from './dto';
@@ -19,7 +19,7 @@ export class OrdersController {
   private readonly logger = new Logger(OrdersController.name);
 
   constructor(
-    @Inject(ORDER_SERVICE) private readonly ordersClient: ClientProxy,
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy,
   ) {}
 
   @Post()
@@ -27,19 +27,19 @@ export class OrdersController {
     this.logger.log('createOrderDto');
     this.logger.log(createOrderDto);
 
-    return this.ordersClient.send('createOrder', createOrderDto);
+    return this.client.send('createOrder', createOrderDto);
   }
 
   @Get()
   findAll() {
-    return this.ordersClient.send('findAllOrders', {});
+    return this.client.send('findAllOrders', {});
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
       const order = await firstValueFrom(
-        this.ordersClient.send('findOneOrder', { id }),
+        this.client.send('findOneOrder', { id }),
       );
       return order;
     } catch (err) {
