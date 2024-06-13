@@ -21,6 +21,7 @@ export class OrdersController {
   constructor(
     @Inject(NATS_SERVICE) private readonly client: ClientProxy,
   ) {}
+  
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
